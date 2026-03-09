@@ -50,6 +50,10 @@ func initCmds(cmds commands) {
 	cmds.register("register", handleRegister)
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
+	cmds.register("agg", handlerAggregator)
+	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerFeeds)
+	fmt.Println("")
 }
 
 func main() {

@@ -40,8 +40,8 @@ func handlerLogins(s *state, cmd command) error {
 }
 
 func handleRegister(s *state, cmd command) error {
-	if cmd.arguments == nil {
-		return fmt.Errorf("not enough arguments")
+	if len(cmd.arguments) < 1 {
+		return fmt.Errorf("not enough arguments. it needs 'name'")
 	}
 
 	ctx := context.Background()
@@ -85,7 +85,11 @@ func handlerReset(s *state, _ command) error {
 		return err
 	}
 
-	fmt.Println("Reset all rows in 'users' table successfully")
+	if err := s.db.ResetFeeds(ctx); err != nil {
+		return err
+	}
+
+	fmt.Println("Reset all rows for 'users' and 'feeds' table successfully")
 	return nil
 }
 
@@ -102,6 +106,99 @@ func handlerUsers(s *state, _ command) error {
 			prefix = "(current)"
 		}
 		fmt.Printf("* %s %s\n", queryData[i].Name, prefix)
+	}
+	return nil
+}
+
+func handlerAggregator(_ *state, cmd command) error {
+	ctx := context.Background()
+	url := "https://www.wagslane.dev/index.xml"
+	feedData, err := fetchFeed(ctx, url)
+	if err != nil {
+		return err
+	}
+	fmt.Println(feedData)
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.arguments) < 2 {
+		return fmt.Errorf("arguments not enough. it needs 'name' and 'url'")
+	}
+
+	ctx := context.Background()
+	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
+	if err == sql.ErrNoRows {
+		fmt.Println("no user name is found in database")
+		os.Exit(1)
+	} else if err != nil {
+		return err
+	}
+
+	input := database.AddFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.arguments[0],
+		Url:       cmd.arguments[1],
+		UserID:    userData.ID,
+	}
+
+	queryData, err := s.db.AddFeed(ctx, input)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Adding feed to database successfully\n")
+	fmt.Fprintf(os.Stdout, "\nID: %v\nName: %s\nUrl:%v\nUserID: %v\n\n", queryData.ID, queryData.Name, queryData.Url, queryData.UserID)
+
+	return nil
+}
+
+func handlerFeeds(s *state, _ command) error {
+	ctx := context.Background()
+	queryData, err := s.db.GetFeeds(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i := range queryData {
+		inst := queryData[i]
+		userData, err := s.db.GetUserWithID(ctx, inst.UserID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("\nEntry %d\n", i+1)
+		fmt.Printf("Name: %s\n", inst.Name)
+		fmt.Printf("Url: %v\n", inst.Url)
+		fmt.Printf("User Name: %s\n", userData.Name)
+	}
+	fmt.Println("")
+	return nil
+}
+
+func handlerFollow(s *state, cmd command) error {
+	ctx := context.Background()
+	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
+	if err != nil {
+		return err
+	}
+	feedData, err := s.db.GetFeedFromURL(ctx, cmd.arguments[0])
+	if err != nil {
+		return err
+	}
+
+	input := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    userData.ID,
+		FeedID:    feedData.ID,
+	}
+
+	queryData, err := s.db.CreateFeedFollow(ctx, input)
+	if err != nil {
+		return err
 	}
 	return nil
 }

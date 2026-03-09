@@ -16,3 +16,6 @@ DELETE FROM users WHERE id IS NOT NULL;
 
 -- name: GetUsers :many
 SELECT * FROM users;
+
+-- name: GetUserWithID :one
+SELECT * FROM users WHERE id=$1;
