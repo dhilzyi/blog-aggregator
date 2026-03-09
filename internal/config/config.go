@@ -2,12 +2,13 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
 type Config struct {
-	DB_url   string `json:"db_url"`
+	DbUrl    string `json:"db_url"`
 	Username string `json:"current_user_name"`
 }
 
@@ -56,6 +57,8 @@ func Write(cfg *Config) error {
 	if err := os.WriteFile(filePath, dataFile, 0644); err != nil {
 		return err
 	}
+
+	fmt.Println("write finished")
 
 	return nil
 }

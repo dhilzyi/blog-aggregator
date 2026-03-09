@@ -2,12 +2,17 @@ package main
 
 import (
 	"blog-aggregator/internal/config"
+	"blog-aggregator/internal/database"
+	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type state struct {
 	Cfg *config.Config
+	db  *database.Queries
 }
 type command struct {
 	name      string
@@ -28,32 +33,23 @@ func (c *commands) run(s *state, cmd command) error {
 		return err
 	}
 
-	fmt.Printf("Executing %s successfully.\n", cmd.name)
+	fmt.Printf("Executing '%s' successfully.\n", cmd.name)
 	return nil
 }
 
 func (c *commands) register(name string, f func(*state, command) error) error {
 	c.cmdlist[name] = f
 
-	fmt.Printf("new function '%s' is added to command list\n", name)
+	fmt.Printf("  new function '%s' is added to command list\n", name)
 	return nil
 }
 
-func handlerLogins(s *state, cmd command) error {
-	if cmd.arguments == nil {
-		return fmt.Errorf("not enough arguments were provided")
-	} else if len(cmd.arguments) < 1 {
-		return fmt.Errorf("username argument is required")
-	}
+func initCmds(cmds commands) {
 
-	s.Cfg.Username = cmd.arguments[0]
-	if err := config.Write(s.Cfg); err != nil {
-		return err
-	}
-
-	fmt.Println("User has been set to", cmd.arguments[0])
-
-	return nil
+	cmds.register("login", handlerLogins)
+	cmds.register("register", handleRegister)
+	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerUsers)
 }
 
 func main() {
@@ -69,12 +65,27 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	states := state{Cfg: cfg}
+	db, err := sql.Open("postgres", cfg.DbUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	dbQueries := database.New(db)
+
+	states := state{Cfg: cfg, db: dbQueries}
 	cmds := commands{
 		cmdlist: make(map[string]func(*state, command) error),
 	}
-	cmds.register("login", handlerLogins)
+
+	initCmds(cmds)
 
 	toRun := command{name: os.Args[1], arguments: os.Args[2:]}
-	cmds.run(&states, toRun)
+	status := cmds.run(&states, toRun)
+	if status != nil {
+		fmt.Println("error occured: ", status)
+		os.Exit(1)
+	} else {
+		fmt.Println("program exiting with 0 code")
+		os.Exit(0)
+	}
 }

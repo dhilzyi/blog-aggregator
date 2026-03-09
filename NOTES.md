@@ -1,4 +1,6 @@
 ---
+ Connection string: postgres://postgres:postgres@localhost:5432/gator
+
 Start postgres server
 - sudo service postgresql start
 
@@ -13,3 +15,6 @@ Connect Database
 | `sudo service postgresql start` | start postgres server in the background |
 | `sudo -u postgres psql` |enter postgres shell|
 | \c {database} | connect to specific database|
+
+- goose cmd
+goose -dir ./sql/schema postgres "postgres://postgres:postgres@localhost:5432/gator" up
