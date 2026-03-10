@@ -5,6 +5,7 @@ import (
 	"blog-aggregator/internal/database"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -51,10 +52,10 @@ func initCmds(cmds commands) {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
 	cmds.register("agg", handlerAggregator)
-	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	cmds.register("feeds", handlerFeeds)
-	cmds.register("follow", handlerFollow)
-	cmds.register("following", handleFollowing)
+	cmds.register("follow", middlewareLoggedIn(handlerFollow))
+	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 
 	fmt.Println("")
 }
@@ -74,7 +75,7 @@ func main() {
 	}
 	db, err := sql.Open("postgres", cfg.DbUrl)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	dbQueries := database.New(db)

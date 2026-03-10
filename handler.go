@@ -13,9 +13,7 @@ import (
 )
 
 func handlerLogins(s *state, cmd command) error {
-	if cmd.arguments == nil {
-		return fmt.Errorf("not enough arguments were provided")
-	} else if len(cmd.arguments) < 1 {
+	if len(cmd.arguments) < 1 {
 		return fmt.Errorf("username argument is required")
 	}
 
@@ -74,7 +72,7 @@ func handleRegister(s *state, cmd command) error {
 		return err
 	}
 
-	fmt.Printf("\nid: %v\ncreatedAt:%v\nname:%s\n\n", dataUser.ID, dataUser.CreatedAt, dataUser.Name)
+	fmt.Printf("\nid: %v\ncreatedAt:%v\nname:%s\n", dataUser.ID, dataUser.CreatedAt, dataUser.Name)
 
 	return nil
 }
@@ -123,19 +121,12 @@ func handlerAggregator(_ *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.arguments) < 2 {
 		return fmt.Errorf("arguments not enough. it needs 'name' and 'url'")
 	}
 
 	ctx := context.Background()
-	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
-	if err == sql.ErrNoRows {
-		fmt.Println("no user name is found in database")
-		os.Exit(1)
-	} else if err != nil {
-		return err
-	}
 
 	input := database.AddFeedParams{
 		ID:        uuid.New(),
@@ -143,7 +134,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: time.Now(),
 		Name:      cmd.arguments[0],
 		Url:       cmd.arguments[1],
-		UserID:    userData.ID,
+		UserID:    user.ID,
 	}
 
 	queryData, err := s.db.AddFeed(ctx, input)
@@ -155,7 +146,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		arguments: []string{cmd.arguments[1]},
 	}
 
-	if err := handlerFollow(s, newCmd); err != nil {
+	if err := handlerFollow(s, newCmd, user); err != nil {
 		return err
 	}
 
@@ -188,16 +179,12 @@ func handlerFeeds(s *state, _ command) error {
 	return nil
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.arguments) < 1 {
 		return fmt.Errorf("url arguments is required")
 	}
 
 	ctx := context.Background()
-	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
-	if err != nil {
-		return err
-	}
 	feedData, err := s.db.GetFeedFromURL(ctx, cmd.arguments[0])
 	if err != nil {
 		return err
@@ -207,7 +194,7 @@ func handlerFollow(s *state, cmd command) error {
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    userData.ID,
+		UserID:    user.ID,
 		FeedID:    feedData.ID,
 	}
 
@@ -222,14 +209,9 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handleFollowing(s *state, _ command) error {
+func handlerFollowing(s *state, _ command, user database.User) error {
 	ctx := context.Background()
-	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
-	if err != nil {
-		return err
-	}
-
-	followData, err := s.db.GetFeedFollowsForUser(ctx, userData.ID)
+	followData, err := s.db.GetFeedFollowsForUser(ctx, user.ID)
 	if err != nil {
 		return err
 	}
