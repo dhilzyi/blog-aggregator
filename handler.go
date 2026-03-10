@@ -81,11 +81,13 @@ func handleRegister(s *state, cmd command) error {
 
 func handlerReset(s *state, _ command) error {
 	ctx := context.Background()
-	if err := s.db.ResetUsers(ctx); err != nil {
+	if err := s.db.ResetFeedFollows(ctx); err != nil {
 		return err
 	}
-
 	if err := s.db.ResetFeeds(ctx); err != nil {
+		return err
+	}
+	if err := s.db.ResetUsers(ctx); err != nil {
 		return err
 	}
 
@@ -148,6 +150,15 @@ func handlerAddFeed(s *state, cmd command) error {
 	if err != nil {
 		return err
 	}
+
+	newCmd := command{
+		arguments: []string{cmd.arguments[1]},
+	}
+
+	if err := handlerFollow(s, newCmd); err != nil {
+		return err
+	}
+
 	fmt.Printf("Adding feed to database successfully\n")
 	fmt.Fprintf(os.Stdout, "\nID: %v\nName: %s\nUrl:%v\nUserID: %v\n\n", queryData.ID, queryData.Name, queryData.Url, queryData.UserID)
 
@@ -178,6 +189,10 @@ func handlerFeeds(s *state, _ command) error {
 }
 
 func handlerFollow(s *state, cmd command) error {
+	if len(cmd.arguments) < 1 {
+		return fmt.Errorf("url arguments is required")
+	}
+
 	ctx := context.Background()
 	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
 	if err != nil {
@@ -200,5 +215,29 @@ func handlerFollow(s *state, cmd command) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("\nFeed Name: %s\n", queryData.FeedName)
+	fmt.Printf("Username: %s\n ", queryData.UserName)
+
+	return nil
+}
+
+func handleFollowing(s *state, _ command) error {
+	ctx := context.Background()
+	userData, err := s.db.GetUser(ctx, s.Cfg.Username)
+	if err != nil {
+		return err
+	}
+
+	followData, err := s.db.GetFeedFollowsForUser(ctx, userData.ID)
+	if err != nil {
+		return err
+	}
+
+	for i := range followData {
+		inst := followData[i]
+		fmt.Printf("- %s\n", inst.FeedName)
+	}
+
 	return nil
 }

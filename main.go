@@ -33,7 +33,7 @@ func (c *commands) run(s *state, cmd command) error {
 		return err
 	}
 
-	fmt.Printf("Executing '%s' successfully.\n", cmd.name)
+	fmt.Printf("\nExecuting '%s' successfully.\n", cmd.name)
 	return nil
 }
 
@@ -53,6 +53,9 @@ func initCmds(cmds commands) {
 	cmds.register("agg", handlerAggregator)
 	cmds.register("addfeed", handlerAddFeed)
 	cmds.register("feeds", handlerFeeds)
+	cmds.register("follow", handlerFollow)
+	cmds.register("following", handleFollowing)
+
 	fmt.Println("")
 }
 
