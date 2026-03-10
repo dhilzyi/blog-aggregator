@@ -151,7 +151,7 @@ func handlerAddFeed(s *state, cmd command, user database.User) error {
 	}
 
 	fmt.Printf("Adding feed to database successfully\n")
-	fmt.Fprintf(os.Stdout, "\nID: %v\nName: %s\nUrl:%v\nUserID: %v\n\n", queryData.ID, queryData.Name, queryData.Url, queryData.UserID)
+	fmt.Fprintf(os.Stdout, "\nID: %v\nName: %s\nUrl:%v\nUserID: %v\n", queryData.ID, queryData.Name, queryData.Url, queryData.UserID)
 
 	return nil
 }
@@ -221,5 +221,23 @@ func handlerFollowing(s *state, _ command, user database.User) error {
 		fmt.Printf("- %s\n", inst.FeedName)
 	}
 
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.arguments) < 1 {
+		return fmt.Errorf("arguments provided is not enough")
+	}
+	ctx := context.Background()
+
+	input := database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		Url:    cmd.arguments[0],
+	}
+	if err := s.db.DeleteFeedFollow(ctx, input); err != nil {
+		return err
+	}
+
+	fmt.Printf("Delete follow feed successfully\n")
 	return nil
 }
