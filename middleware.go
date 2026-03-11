@@ -1,10 +1,10 @@
 package main
 
 import (
-	"blog-aggregator/internal/database"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/dhilzyi/blog-aggregator/internal/database"
 	"log"
 	"os"
 )

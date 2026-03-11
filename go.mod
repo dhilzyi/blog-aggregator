@@ -1,4 +1,4 @@
-module blog-aggregator
+module github.com/dhilzyi/blog-aggregator
 
 go 1.22.2
 

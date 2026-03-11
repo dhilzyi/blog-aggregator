@@ -1,10 +1,10 @@
 package main
 
 import (
-	"blog-aggregator/internal/config"
-	"blog-aggregator/internal/database"
 	"database/sql"
 	"fmt"
+	"github.com/dhilzyi/blog-aggregator/internal/config"
+	"github.com/dhilzyi/blog-aggregator/internal/database"
 	"log"
 	"os"
 
