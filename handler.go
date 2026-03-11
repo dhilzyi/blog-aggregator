@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -252,6 +253,37 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	limit := 2
+	if len(cmd.arguments) != 0 {
+		limitInt, err := strconv.Atoi(cmd.arguments[0])
+		if err != nil {
+			fmt.Println(err)
+		}
+		limit = limitInt
+	}
+	ctx := context.Background()
+
+	input := database.GetPostsUserParams{
+		UserID: user.ID,
+		Limit:  int32(limit),
+	}
+
+	data, err := s.db.GetPostsUser(ctx, input)
+	if err != nil {
+		return err
+	}
+
+	for i := range data {
+		inst := data[i]
+		fmt.Println(" -", inst.Title)
+		fmt.Println("Published Date: ", inst.PublishedAt)
+		fmt.Println("")
+	}
+
+	return nil
+}
+
 func scrapeFeeds(s *state) error {
 	ctx := context.Background()
 	feedData, err := s.db.GetNextFeedToFetch(ctx)
@@ -286,9 +318,35 @@ func scrapeFeeds(s *state) error {
 			continue
 		}
 
-		fmt.Printf(" - %s\n", inst.Title)
+		desc := sql.NullString{}
+		if inst.Description != "" {
+			desc.String = inst.Description
+			desc.Valid = true
+		}
+
+		layout := "Mon, 02 Jan 2006 15:04:05 Z0700"
+		convertedTime, err := time.Parse(layout, inst.PubDate)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		input := database.CreatePostParams{
+			ID:          uuid.New(),
+			Title:       inst.Title,
+			Url:         inst.Link,
+			Description: desc,
+			PublishedAt: convertedTime,
+			FeedID:      feedData.ID,
+		}
+
+		_, err = s.db.CreatePost(ctx, input)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		count++
 	}
+	fmt.Printf("\nSucceed record %d items to database.\n", count)
 
 	return nil
 }
