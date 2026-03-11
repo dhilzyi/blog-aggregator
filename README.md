@@ -1,5 +1,5 @@
 ## Description
-It's a blog aggregator project by following guide course from boot.dev  
+It's a blog aggregator project by following guide course from boot.dev. This program able to fetch RSS site and store it to the local postgres database.  
 
 Link to the course. [Build a Blog Aggregator by boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242)
 
@@ -32,7 +32,7 @@ You can change the db url connection according to your own user and password.
 
 You need pass command name as a first argument then after that the other arguments will be passed for the command itself.
 
-| Command | Explantation | Arguments |Example |
+| Command | Explanation | Arguments |Example |
 | --- | --- | --- | --- |
 | login | Change account to specific user |( name )| blog-aggregator login ruru |
 | register | Register new account to table users |( name )| .. register ruru |
