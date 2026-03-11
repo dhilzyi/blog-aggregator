@@ -110,14 +110,24 @@ func handlerUsers(s *state, _ command) error {
 	return nil
 }
 
-func handlerAggregator(_ *state, cmd command) error {
-	ctx := context.Background()
-	url := "https://www.wagslane.dev/index.xml"
-	feedData, err := fetchFeed(ctx, url)
+func handlerAggregator(s *state, cmd command) error {
+	if len(cmd.arguments) < 1 {
+		return fmt.Errorf("arguments not enough")
+	}
+
+	timeIntervalReq, err := time.ParseDuration(cmd.arguments[0])
 	if err != nil {
 		return err
 	}
-	fmt.Println(feedData)
+
+	fmt.Println("Collecting feeds every", timeIntervalReq)
+	ticker := time.NewTicker(timeIntervalReq)
+	for ; ; <-ticker.C {
+		if err := scrapeFeeds(s); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -239,5 +249,46 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	}
 
 	fmt.Printf("Delete follow feed successfully\n")
+	return nil
+}
+
+func scrapeFeeds(s *state) error {
+	ctx := context.Background()
+	feedData, err := s.db.GetNextFeedToFetch(ctx)
+	if err != nil {
+		return err
+	}
+	if err := s.db.MarkFeedFetched(ctx, feedData.ID); err != nil {
+		return err
+	}
+	fmt.Printf("\nMark fetched success for feed id: %v\n", feedData.ID)
+
+	newFeed, err := fetchFeed(ctx, feedData.Url)
+	if err != nil {
+		return err
+	}
+
+	if len(newFeed.Channel.Item) < 1 {
+		return fmt.Errorf("feed returning 0 items")
+	}
+	fmt.Printf("Printing feed to the console from '%s'\n", feedData.Name)
+	fmt.Printf("%d items is received.\n\n", len(newFeed.Channel.Item))
+
+	count := 0
+	for i := range newFeed.Channel.Item {
+		if count >= 30 {
+			fmt.Printf("\nPrinting is limited to 30 items.\n")
+			break
+		}
+
+		inst := newFeed.Channel.Item[i]
+		if inst.Title == "" {
+			continue
+		}
+
+		fmt.Printf(" - %s\n", inst.Title)
+		count++
+	}
+
 	return nil
 }

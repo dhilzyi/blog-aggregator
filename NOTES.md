@@ -19,3 +19,8 @@ Connect Database
 - goose cmd
 goose -dir ./sql/schema postgres "postgres://postgres:postgres@localhost:5432/gator" up
 
+
+UPDATE feeds
+SET updated_at = '2026-03-9 22:18:01.737593', last_fetched_at = '2026-03-9 22:18:01.737593'
+WHERE url='fb.com';
+

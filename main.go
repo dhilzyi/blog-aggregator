@@ -65,9 +65,6 @@ func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("not enough arguments were provided")
 		os.Exit(1)
-	} else if len(os.Args) == 2 && os.Args[1] == "login" {
-		fmt.Println("username is required")
-		os.Exit(1)
 	}
 
 	cfg, err := config.Read()
