@@ -20,7 +20,8 @@ SELECT
   posts.url,
   posts.description,
   posts.published_at,
-  posts.feed_id
+  posts.feed_id,
+	feeds.name AS feed_source_name
 FROM
   posts
   INNER JOIN feeds ON posts.feed_id = feeds.id

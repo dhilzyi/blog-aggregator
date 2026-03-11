@@ -68,7 +68,8 @@ SELECT
   posts.url,
   posts.description,
   posts.published_at,
-  posts.feed_id
+  posts.feed_id,
+	feeds.name AS feed_source_name
 FROM
   posts
   INNER JOIN feeds ON posts.feed_id = feeds.id
@@ -84,15 +85,27 @@ type GetPostsUserParams struct {
 	Limit  int32
 }
 
-func (q *Queries) GetPostsUser(ctx context.Context, arg GetPostsUserParams) ([]Post, error) {
+type GetPostsUserRow struct {
+	ID             uuid.UUID
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	Title          string
+	Url            string
+	Description    sql.NullString
+	PublishedAt    time.Time
+	FeedID         uuid.UUID
+	FeedSourceName string
+}
+
+func (q *Queries) GetPostsUser(ctx context.Context, arg GetPostsUserParams) ([]GetPostsUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, getPostsUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []GetPostsUserRow
 	for rows.Next() {
-		var i Post
+		var i GetPostsUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -102,6 +115,7 @@ func (q *Queries) GetPostsUser(ctx context.Context, arg GetPostsUserParams) ([]P
 			&i.Description,
 			&i.PublishedAt,
 			&i.FeedID,
+			&i.FeedSourceName,
 		); err != nil {
 			return nil, err
 		}

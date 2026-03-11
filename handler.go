@@ -278,6 +278,7 @@ func handlerBrowse(s *state, cmd command, user database.User) error {
 		inst := data[i]
 		fmt.Println(" -", inst.Title)
 		fmt.Println("Published Date: ", inst.PublishedAt)
+		fmt.Println("Source RSS: ", inst.FeedSourceName)
 		fmt.Println("")
 	}
 
