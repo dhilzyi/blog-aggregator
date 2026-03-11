@@ -7,21 +7,21 @@ You need to install some program in your computer to able run this program.
 - Go 1.22.2+
 
 ## Installation
-After you have golang in your system. Run this command in terminal to install.
+After you have golang in your system. Run this command in terminal to install.  
 `go install github.com/dhilzyi/blog-aggregator@latest`
-
-- Type `blog-aggregator` to run it.
+  
+Type `blog-aggregator` to run it.
 
 ## Configuration
-You might want to create the config file for yourself
-[1]. First create the file following the path `~/.gatorconfig.json`.
-[2]. Copy and paste below code into the file
+You might want to create the config file for yourself  
+[1]. First create the file following the path `~/.gatorconfig.json`.  
+[2]. Copy and paste below code into the file  
 ```
 {
  "db_url": "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable",
  "current_user_name": "admin"
 }
-```
+```  
 [3]. Save the file
 
 You can change the db url connection according to your own user and password.
@@ -39,4 +39,3 @@ You need pass command name as a first argument then after that the other argumen
 | feeds |Show all feeds for current user| |.. feeds|
 | browse |Show all posts for current user| |.. browse|
 | agg |Will fetch every interval time| ( interval time ) |.. 1m|
-
