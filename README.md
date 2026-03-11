@@ -1,5 +1,7 @@
 ## Description
-It's a blog aggregator project by following guide course from boot.dev
+It's a blog aggregator project by following guide course from boot.dev  
+
+Link to the course. [Build a Blog Aggregator by boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242)
 
 ## Requirements
 You need to install some program in your computer to able run this program.
