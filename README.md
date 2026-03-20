@@ -1,43 +1,86 @@
 ## Description
-It's a blog aggregator project by following guide course from boot.dev. This program able to fetch RSS site and store it to the local postgres database.  
 
-Link to the course. [Build a Blog Aggregator by boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242)
+This is a blog aggregator CLI project built by following a course from Boot.dev. The application fetches RSS feeds and stores posts in a local PostgreSQL database.
+
+Course link:  
+[Build a Blog Aggregator – Boot.dev](https://www.boot.dev/lessons/14b7179b-ced3-4141-9fa5-e67dbc3e5242)
+
+---
 
 ## Requirements
-You need to install some program in your computer to able run this program.
-- Postgres 16.13+
-- Go 1.22.2+
+
+Make sure you have the following installed:
+
+- PostgreSQL 16+
+- Go 1.22+
+
+---
 
 ## Installation
-After you have golang in your system. Run this command in terminal to install.  
-`go install github.com/dhilzyi/blog-aggregator@latest`
-  
-Type `blog-aggregator` to run it.
+
+Install the CLI tool using:
+
+```bash
+go install github.com/dhilzyi/blog-aggregator@latest
+```
+
+Then run:
+
+```bash
+blog-aggregator
+```
+
+---
 
 ## Configuration
-You might want to create the config file for yourself  
-[1]. First create the file following the path `~/.gatorconfig.json`.  
-[2]. Copy and paste below code into the file  
-```
-{
- "db_url": "postgres://postgres:postgres@localhost:5432/gator?sslmode=disable",
- "current_user_name": "admin"
-}
-```  
-[3]. Save the file
 
-You can change the db url connection according to your own user and password.
+### 1. Create the database
+
+```bash
+createdb gator
+```
+
+---
+
+### 2. Create config file
+
+Create the file:
+
+```bash
+~/.gatorconfig.json
+```
+
+Add the following:
+
+```json
+{
+  "db_url": "postgres://username:password@localhost:5432/gator?sslmode=disable",
+  "current_user_name": "admin"
+}
+```
+
+Update the database URL with your own credentials.
+
+---
+
+## Usage
+
+Commands are passed as arguments to the CLI:
+
+```bash
+blog-aggregator <command> [arguments...]
+```
+
+---
 
 ## Commands
 
-You need pass command name as a first argument then after that the other arguments will be passed for the command itself.
-
-| Command | Explanation | Arguments |Example |
-| --- | --- | --- | --- |
-| login | Change account to specific user |( name )| blog-aggregator login ruru |
-| register | Register new account to table users |( name )| .. register ruru |
-| reset | WARNING: this will delete all rows in all tables | | .. reset|
-| addfeed |Add new feed to the table feeds| ( name ) ( link )|.. "Hacker News" "https://news.ycombinator.com/rss"|
-| feeds |Show all feeds for current user| |.. feeds|
-| browse |Show all posts for current user| |.. browse|
-| agg |Will fetch every interval time| ( interval time ) |.. 1m|
+| Command   | Description                                      | Arguments                     | Example |
+|----------|--------------------------------------------------|------------------------------|--------|
+| login    | Switch to an existing user                       | `<name>`                     | `blog-aggregator login ruru` |
+| register | Register a new user                              | `<name>`                     | `blog-aggregator register ruru` |
+| reset    | Delete all data in all tables ⚠️                 | none                         | `blog-aggregator reset` |
+| addfeed  | Add a new RSS feed                               | `<name> <url>`               | `blog-aggregator addfeed "Hacker News" "https://news.ycombinator.com/rss"` |
+| feeds    | List all feeds for the current user              | none                         | `blog-aggregator feeds` |
+| browse   | Show posts from followed feeds                   | none                         | `blog-aggregator browse` |
+| agg      | Start feed aggregation loop                      | `<interval>` (e.g. `1m`)     | `blog-aggregator agg 1m` |
